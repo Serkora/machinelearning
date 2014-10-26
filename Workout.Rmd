@@ -3,7 +3,7 @@ library(knitr)
 library(caret)
 library(ggplot2)
 library(randomForest)
-opts_chunk$set(tidy=T,highlight=TRUE,eval=T)
+opts_chunk$set(tidy=T,highlight=TRUE,eval=T,cache=T)
 source("~/documents/r/functions/multiplot.R")
 setwd("~/documents/r/machlrn") 
 training<-read.csv("pml-training.csv")
@@ -82,6 +82,8 @@ pred<-predict(subfit)
 confusionMatrix(pred,trains$classe)
 ```
 
-### Results
+### Conclusions
 
-Overall, the model gives small errors: 7% overall, and very low probability of incorrectly identifying an exercize as being carried out improperly in any way - 2.5%. Based on a single measurement only, but the above model can be updated to "adapt" during the execrsize to the person, because accuracy can be greatly increased by processing not only several measurements, but also its variances, as it can say a lot, when mean/median values for some of variables are known. And simply having several measurements to produce out a single outcome vastly reduces the chance of error to being, essentially, negligible.
+Overall, the model gives small errors: about 7% overall - much higher than previous OOB estimates, as expected - and very low probability of incorrectly identifying an exercize as being carried out improperly in any way - 2.5%. The actual out-of-sample error rate may be slightly higher, but 6-7% is probably very close to what one would get. Choice of variables to use was made both by using all the data and subset data for each of the six participants, so it might be a bit biased. For the 20 available testing measurements, accuracy was 100%, but that's not a large enough sample to properly estimate out-of-sample error.
+
+The above model can be improved for actual use and "adapt" during the execrsize to the person, because accuracy can be greatly increased by processing not only several measurements, but also its variances, as it can say a lot, when mean/median values for some of variables are known. And simply having several measurements to produce out a single outcome vastly reduces the chance of error to being, essentially, negligible.

@@ -37,11 +37,11 @@ Which gives a consedarably low Out-of-Bag error rate of only 3.92%. The confusio
 
 ```
 ##      A    B    C    D    E class.error
-## A 5477   46   14   35    8     0.01846
-## B  108 3521  100   39   29     0.07269
-## C   13   76 3286   32   15     0.03974
-## D   11   12  108 3059   26     0.04882
-## E    8   41   33   28 3497     0.03050
+## A 5486   42   17   30    5     0.01685
+## B  110 3512  108   41   26     0.07506
+## C   12   67 3301   28   14     0.03536
+## D    6   11  110 3062   27     0.04789
+## E    7   39   36   34 3491     0.03216
 ```
 
 From which it can be seen that there is a very low chance of false negative - that is, classifying your execution of an exercise as incorrect when in fact everything was ok. It would be reasonable to assume that it is very important to have this error as the lowest, thus not allowing a person to mistakenly learn an improper way of doing an excersize.  
@@ -70,35 +70,37 @@ confusionMatrix(pred, trains$classe)
 ## 
 ##           Reference
 ## Prediction    A    B    C    D    E
-##          A 2742   84   10   14    8
-##          B   39 1607   47    9   24
-##          C   14   83 1552   81   27
-##          D   27   25   29 1503   21
-##          E   10   34   12   22 1787
+##          A 2693   94   11   18   11
+##          B   39 1623   49   15   37
+##          C   20   82 1628   79   37
+##          D   18   37   29 1470   21
+##          E   11   28   16   21 1724
 ## 
 ## Overall Statistics
 ##                                         
-##                Accuracy : 0.937         
-##                  95% CI : (0.932, 0.942)
-##     No Information Rate : 0.289         
+##                Accuracy : 0.931         
+##                  95% CI : (0.926, 0.936)
+##     No Information Rate : 0.283         
 ##     P-Value [Acc > NIR] : < 2e-16       
 ##                                         
-##                   Kappa : 0.92          
-##  Mcnemar's Test P-Value : 2.75e-11      
+##                   Kappa : 0.913         
+##  Mcnemar's Test P-Value : 3.49e-12      
 ## 
 ## Statistics by Class:
 ## 
 ##                      Class: A Class: B Class: C Class: D Class: E
-## Sensitivity             0.968    0.877    0.941    0.923    0.957
-## Specificity             0.983    0.985    0.975    0.988    0.990
-## Pos Pred Value          0.959    0.931    0.883    0.936    0.958
-## Neg Pred Value          0.987    0.972    0.988    0.985    0.990
-## Prevalence              0.289    0.187    0.168    0.166    0.190
-## Detection Rate          0.279    0.164    0.158    0.153    0.182
-## Detection Prevalence    0.291    0.176    0.179    0.164    0.190
-## Balanced Accuracy       0.976    0.931    0.958    0.955    0.974
+## Sensitivity             0.968    0.871    0.939    0.917    0.942
+## Specificity             0.981    0.982    0.973    0.987    0.990
+## Pos Pred Value          0.953    0.921    0.882    0.933    0.958
+## Neg Pred Value          0.987    0.970    0.987    0.984    0.987
+## Prevalence              0.283    0.190    0.177    0.163    0.187
+## Detection Rate          0.274    0.165    0.166    0.150    0.176
+## Detection Prevalence    0.288    0.180    0.188    0.161    0.183
+## Balanced Accuracy       0.975    0.927    0.956    0.952    0.966
 ```
 
-### Results
+### Conclusions
 
-Overall, the model gives small errors: 7% overall, and very low probability of incorrectly identifying an exercize as being carried out improperly in any way - 2.5%. Based on a single measurement only, but the above model can be updated to "adapt" during the execrsize to the person, because accuracy can be greatly increased by processing not only several measurements, but also its variances, as it can say a lot, when mean/median values for some of variables are known. And simply having several measurements to produce out a single outcome vastly reduces the chance of error to being, essentially, negligible.
+Overall, the model gives small errors: about 7% overall - much higher than previous OOB estimates, as expected - and very low probability of incorrectly identifying an exercize as being carried out improperly in any way - 2.5%. The actual out-of-sample error rate may be slightly higher, but 6-7% is probably very close to what one would get. Choice of variables to use was made both by using all the data and subset data for each of the six participants, so it might be a bit biased. For the 20 available testing measurements, accuracy was 100%, but that's not a large enough sample to properly estimate out-of-sample error.
+
+The above model can be improved for actual use and "adapt" during the execrsize to the person, because accuracy can be greatly increased by processing not only several measurements, but also its variances, as it can say a lot, when mean/median values for some of variables are known. And simply having several measurements to produce out a single outcome vastly reduces the chance of error to being, essentially, negligible.

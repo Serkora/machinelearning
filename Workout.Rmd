@@ -1,0 +1,87 @@
+```{r global_options, include=FALSE,warning=FALSE}
+library(knitr)
+library(caret)
+library(ggplot2)
+library(randomForest)
+opts_chunk$set(tidy=T,highlight=TRUE,eval=T)
+source("~/documents/r/functions/multiplot.R")
+setwd("~/documents/r/machlrn") 
+training<-read.csv("pml-training.csv")
+testing<-read.csv("pml-testing.csv")
+```
+
+# &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Analysis of Weight Lifting Excersize
+```{r,echo=FALSE,eval=FALSE}
+datum<-training[,!is.na(training[1,])]
+datum<-datum[,-seq(1,7)]
+datum<-datum[,-seq(4,13)]
+datum<-datum[,-seq(26,30)]
+datum<-datum[,-26]
+datum<-datum[,-seq(29,37)]
+datum<-datum[,-seq(42,50)]
+datum[,53]<-training[,2]
+names(datum)[53]<-"username"
+```
+<br>
+<br>
+### Introduction
+
+The dataset contains measurements from several detectors placed on the arm, forearm and belt of a person involved in a workout session. Several thousand recording have been made during correct and 4 incorrect ways of doing a certain excersize. Based on those instanteneous measurements it is then predicted if the person is doing and excersize properly or, if not, which one of the most common mistakes are being made.
+
+### Covariates analysis
+
+Below is a graph of the most distinctive variables.
+
+```{r, echo=FALSE,fig.width=12}
+a<-qplot(classe,gyros_belt_z,data=training)
+b<-qplot(classe,gyros_belt_y,data=training)
+c<-qplot(classe,roll_arm,data=training[training$user_name=="pedro",])
+#d<-qplot(yaw_arm,roll_arm,data=datum,colour=username)
+d<-qplot(classe,abs(magnet_dumbbell_x),data=training[training$user_name=="pedro",])
+multiplot(a,b,c,d,cols=2)
+```
+
+On top left in can be seen that "gyros_belt_z" is a very useful variable to pick out classes D or E of the exercise, because for others this value is very close to zero. That's to be expected, as your hand is only supposed to move in two planes if the excercise is done correctly.
+
+Bottom left, "gyros_belt_y", allows to pick out classes B and C with a relatively high probability if measured value is low.
+
+Shown on the top right, "roll_arm" can allow to distinguish A and B classes from the rest. However, the abosulte values are a bit different for each of the participants, resulting in an almost even spread of the values if looked at all 6 people at the same, so to correctly make use of this variable, it should somehow be decided what group the measurement that is being predicted belongs to. 
+
+A higly covariated "yaw_arm" variable is added to do that.
+
+The last one shown, on the bottom right, "magnet_dumbbell_x", also has large differences between measurements, it's absolute value (since it is negative for some participants) can potentially help distinguish A, C and D classes, with even higher chance of it being A, although varying slightly across participants. "magnet_dumbbell_y" also shows the same trend and can therefore be added to increase accuracy.
+
+
+This would results to a model with 6 covariates, but a couple more are added for an increased accuracy:
+```{r}
+modfit<-randomForest(classe~gyros_belt_z+gyros_belt_y+roll_arm+yaw_arm+magnet_dumbbell_x+magnet_dumbbell_y+accel_arm_y+pitch_forearm+yaw_forearm+roll_dumbbell,ntree=40,data=training)
+```
+
+Which gives a consedarably low Out-of-Bag error rate of only 3.92%. The confusion matrix is shown below:
+```{r, echo=FALSE}
+modfit[[5]]
+```
+
+From which it can be seen that there is a very low chance of false negative - that is, classifying your execution of an exercise as incorrect when in fact everything was ok. It would be reasonable to assume that it is very important to have this error as the lowest, thus not allowing a person to mistakenly learn an improper way of doing an excersize.  
+
+```{r, echo=FALSE}
+plot(modfit,main="Error rate vs Number of trees")
+```
+
+Using more than 40 trees barely decreases error rates (drops to about 5% with 500 trees), and that will most likely introduce a lot of overfitting, which is undesirable.
+
+When trained on a subset of a training data set (the one correct answers are known to), the following are the results:
+```{r}
+ind<-sample(seq(1,19622),9811) # random indices to spit
+trains<-training[ind,]
+tests<-training[-ind,]
+trains<-trains[sample(nrow(trains)),] # shuffle rows
+tests<-tests[sample(nrow(tests)),] # shuffle rows
+subfit<-randomForest(classe~gyros_belt_z+gyros_belt_y+roll_arm+yaw_arm+magnet_dumbbell_x+magnet_dumbbell_y+accel_arm_y+pitch_forearm+yaw_forearm+roll_dumbbell,ntree=40,data=trains)
+pred<-predict(subfit)
+confusionMatrix(pred,trains$classe)
+```
+
+### Results
+
+Overall, the model gives small errors: 7% overall, and very low probability of incorrectly identifying an exercize as being carried out improperly in any way - 2.5%. Based on a single measurement only, but the above model can be updated to "adapt" during the execrsize to the person, because accuracy can be greatly increased by processing not only several measurements, but also its variances, as it can say a lot, when mean/median values for some of variables are known. And simply having several measurements to produce out a single outcome vastly reduces the chance of error to being, essentially, negligible.
